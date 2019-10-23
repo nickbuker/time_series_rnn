@@ -1,3 +1,9 @@
+# pyenv stuff
 .python-version
+# notebook checkpoints
 .ipynb_checkpoints/
+# ide stuff
+.vscode/
+.idea/
+# python bytecode
 __pycache__/
