@@ -7,10 +7,10 @@ import pandas as pd
 from tensorflow.keras.models import Sequential
 
 
-def make_training_data(
+def make_samples(
         series: pd.Series,
-        n_x: int,
-        n_y: int,
+        n_in: int,
+        n_out: int,
 ) -> Tuple[np.array, np.array]:
     """TODO
 
@@ -18,43 +18,43 @@ def make_training_data(
     ----------
     series
         full time series
-    n_x
-        number of observations to include in x
-    n_y
-        number of observations to include in y
+    n_in
+        number of observations to include in the model input
+    n_out
+        number of observations to include in the model output
 
     Returns
     -------
     Union[np.array, np.array]
         data to be ingested by and estimated by the model
     """
-    x = None
-    y = None
+    data_in = None
+    data_out = None
     i = 0
-    while i + n_x + n_y < series.shape[0]:
+    while i + n_in + n_out < series.shape[0]:
         if i == 0:
-            x = series[i: i + n_x].values
-            y = series[i + n_x: i + n_x + n_y].values
+            data_in = series[i: i + n_in].values
+            data_out = series[i + n_in: i + n_in + n_out].values
         else:
-            x = np.vstack([x, series[i: i + n_x].values])
-            y = np.vstack([y, series[i + n_x: i + n_x + n_y]])
+            data_in = np.vstack([data_in, series[i: i + n_in].values])
+            data_out = np.vstack([data_out, series[i + n_in: i + n_in + n_out]])
         i += 1
-    return x, y
+    return data_in, data_out
 
 
 def plot_rnn_output(
-    x: np.array,
-    y: np.array,
+    data_in: np.array,
+    data_out: np.array,
     i: int,
     model: Sequential,
 ) -> None:
-    """TODO
+    """Plots the input data, output data, and estimated data from the model
 
     Parameters
     ----------
-    x
+    data_in
         validation data ingested by model
-    y
+    data_out
         validation data to be estimated by model
     i
         index of data to be plotted
@@ -71,31 +71,32 @@ def plot_rnn_output(
         ncols=2,
         sharey=True,
         figsize=(16, 8))
-    axs[0].set_xlim((0, x.shape[1] + y.shape[1] - 1))
-    axs[1].set_xlim(0, y.shape[1] - 1)
+    axs[0].set_xlim((0, data_in.shape[1] + data_out.shape[1] - 1))
+    axs[1].set_xlim(0, data_out.shape[1] - 1)
     axs[0].plot(
-        x[0],
+        data_in[i],
         label='Input data',
         color='dodgerblue',
         linewidth=1)
     axs[0].plot(
-        range(x.shape[1], x.shape[1] + y.shape[1]),
-        model.predict(x[i].reshape(1, x[i].shape[0], 1))[0],
+        range(data_in.shape[1], data_in.shape[1] + data_out.shape[1]),
+        model.predict(data_in[i].reshape(1, data_in[i].shape[0], 1))[0],
         label='Estimated result',
         color='orange',
         linewidth=1)
     axs[0].plot(
-        range(x.shape[1], x.shape[1] + y.shape[1]),
-        y[i],
+        range(data_in.shape[1], data_in.shape[1] + data_out.shape[1]),
+        data_out[i],
         label='True result',
         color='limegreen',
         linewidth=1)
     axs[1].plot(
-        model.predict(x[i].reshape(1, x[i].shape[0], 1))[0],
+        model.predict(data_in[i].reshape(1, data_in[i].shape[0], 1))[0],
         label='Estimated result',
         color='orange')
     axs[1].plot(
-        y[i],
+        data_out[i],
         label='True result',
         color='limegreen')
+    plt.show()
     return
